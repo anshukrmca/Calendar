@@ -26,11 +26,11 @@ const importanceOptions = [
 ];
 
 const typeOptions = [
-  { value: 'work', label: 'Work' },
-  { value: 'personal', label: 'Personal' },
-  { value: 'meeting', label: 'Meeting' },
-  { value: 'reminder', label: 'Reminder' },
-  { value: 'other', label: 'Other' },
+  { value: 'work', label: 'Work', color: 'bg-purple-500 text-white' },
+  { value: 'personal', label: 'Personal', color: 'bg-amber-500 text-white' },
+  { value: 'meeting', label: 'Meeting', color: 'bg-pink-500 text-white' },
+  { value: 'reminder', label: 'Reminder', color: 'bg-indigo-500 text-white' },
+  { value: 'other', label: 'Other', color: 'bg-teal-500 text-white' },
 ];
 
 const EventModal: React.FC<EventModalProps> = ({
@@ -65,7 +65,6 @@ const EventModal: React.FC<EventModalProps> = ({
       const now = new Date();
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
-
       setTitle('');
       setDescription('');
       setStartDate(now.toISOString().split('T')[0]);
@@ -80,21 +79,11 @@ const EventModal: React.FC<EventModalProps> = ({
   const handleSave = () => {
     const start = new Date(`${startDate}T${startTime}`);
     const end = new Date(`${endDate}T${endTime}`);
-
     if (start >= end) {
       alert('End time must be after start time');
       return;
     }
-
-    onSave({
-      title,
-      description,
-      start,
-      end,
-      color,
-      importance,
-      type,
-    });
+    onSave({ title, description, start, end, color, importance, type });
     onClose();
   };
 
@@ -112,18 +101,19 @@ const EventModal: React.FC<EventModalProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-1/3 mx-4"
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-lg shadow-xl w-full sm:max-w-lg lg:max-w-2xl flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">
+            {/* Header */}
+            <div className="flex justify-between items-center p-2 px-4">
+              <h2 className="text-lg sm:text-xl font-semibold">
                 {event ? 'Edit Event' : 'Add Event'}
               </h2>
               <button
@@ -134,93 +124,66 @@ const EventModal: React.FC<EventModalProps> = ({
               </button>
             </div>
 
-            <div className="space-y-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-4 md:px-6 space-y-2 md:space-y-4">
+              {/* Title */}
               <div>
-                <label className="block text-sm font-medium mb-1">Title</label>
+                <label className="block text-xs md:text-sm font-medium mb-1">Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-1 md:p-2 text-xs md:text-sm border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="Event title"
                 />
               </div>
 
+              {/* Description */}
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
+                <label className="block text-xs md:text-sm font-medium mb-1">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={3}
+                  className="w-full p-1 md:p-2 text-xs md:text-sm border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={2}
                   placeholder="Event description"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 flex items-center">
-                    <Calendar size={16} className="mr-1" />
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 flex items-center">
-                    <Clock size={16} className="mr-1" />
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+              {/* Dates & Times */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { label: 'Start Date', icon: Calendar, type: 'date', value: startDate, set: setStartDate },
+                  { label: 'Start Time', icon: Clock, type: 'time', value: startTime, set: setStartTime },
+                  { label: 'End Date', icon: Calendar, type: 'date', value: endDate, set: setEndDate },
+                  { label: 'End Time', icon: Clock, type: 'time', value: endTime, set: setEndTime },
+                ].map((field, i) => (
+                  <div key={i}>
+                    <label className="text-xs md:text-sm font-medium mb-1 flex items-center">
+                      <field.icon size={14} className="mr-1" />
+                      {field.label}
+                    </label>
+                    <input
+                      type={field.type}
+                      value={field.value}
+                      onChange={(e) => field.set(e.target.value)}
+                      className="w-full p-1 md:p-2 text-xs md:text-sm border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    />
+                  </div>
+                ))}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 flex items-center">
-                    <Calendar size={16} className="mr-1" />
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 flex items-center">
-                    <Clock size={16} className="mr-1" />
-                    End Time
-                  </label>
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
+              {/* Importance */}
               <div>
                 <label className="block text-sm font-medium mb-1">Importance</label>
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   {importanceOptions.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setImportance(option.value as 'low' | 'medium' | 'high')}
-                      className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+                      className={`px-3 py-0.5 md:py-1 text-[10px] md:text-xs cursor-pointer rounded-full font-medium transition-all duration-200 ${
                         importance === option.value
-                          ? 'bg-blue-500 text-white'
+                          ? 'bg-blue-500 text-white ring-2 ring-slate-700'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
@@ -230,18 +193,17 @@ const EventModal: React.FC<EventModalProps> = ({
                 </div>
               </div>
 
+              {/* Type */}
               <div>
                 <label className="block text-sm font-medium mb-1">Type</label>
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   {typeOptions.map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setType(option.value as 'work' | 'personal' | 'meeting' | 'reminder' | 'other')}
-                      className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
-                        type === option.value
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
+                      onClick={() => setType(option.value as any)}
+                      className={`px-3 py-0.5 md:py-1 text-[10px] md:text-xs cursor-pointer rounded-full  font-medium transition-all duration-200 ${
+                        type === option.value ? 'ring-2 ring-slate-700' : ''
+                      } ${option.color}`}
                     >
                       {option.label}
                     </button>
@@ -249,18 +211,19 @@ const EventModal: React.FC<EventModalProps> = ({
                 </div>
               </div>
 
+              {/* Color */}
               <div>
                 <label className="text-sm font-medium mb-1 flex items-center">
                   <Palette size={16} className="mr-1" />
                   Color
                 </label>
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   {colorOptions.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setColor(option.value)}
-                      className={`w-8 h-8 rounded-full ${option.value} border-2 ${
-                        color === option.value ? 'border-gray-600' : 'border-gray-300'
+                      className={`w-6 h-6 md:w-8 md:h-8 cursor-pointer rounded-full ${option.value} border-2 ${
+                        color === option.value ? 'border-gray-700' : 'border-gray-300'
                       } transition-all`}
                       title={option.label}
                     />
@@ -269,7 +232,8 @@ const EventModal: React.FC<EventModalProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-between mt-6">
+            {/* Footer */}
+            <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
               {event && onDelete && (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -281,24 +245,20 @@ const EventModal: React.FC<EventModalProps> = ({
                   Delete
                 </motion.button>
               )}
-              <div className="flex space-x-2 ml-auto">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+              <div className="flex gap-2 ml-auto">
+                <button
                   onClick={onClose}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-all hover:scale-105 duration-200"
                 >
                   Cancel
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                </button>
+                <button
                   onClick={handleSave}
-                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all hover:scale-105 duration-200"
                 >
                   <Save size={16} className="mr-2" />
                   Save
-                </motion.button>
+                </button>
               </div>
             </div>
           </motion.div>

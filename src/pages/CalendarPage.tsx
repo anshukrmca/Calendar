@@ -59,7 +59,7 @@ const CalendarPage: React.FC = () => {
                 setSelectedEvent(null);
                 setIsModalOpen(true);
               }}
-              className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors shadow-md"
+              className="flex items-center px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors shadow-md"
             >
               <Plus size={20} className="mr-2" />
               Add Event
