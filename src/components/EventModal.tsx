@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, Palette, Save, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Save, Trash2 } from 'lucide-react';
 import type { Event } from '../utils/localStorage';
+import Modal from './ui/Modal';
+import Input from './ui/Input';
+import Textarea from './ui/Textarea';
+import Chip from './ui/Chip';
+import ColorPicker from './ui/ColorPicker';
+import Button from './ui/Button';
+import Select from './ui/Select';
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   event?: Event | null;
+  selectedDate?: Date | null;
   onSave: (event: Omit<Event, 'id'>) => void;
   onDelete?: (id: string) => void;
 }
@@ -37,6 +44,7 @@ const EventModal: React.FC<EventModalProps> = ({
   isOpen,
   onClose,
   event,
+  selectedDate,
   onSave,
   onDelete,
 }) => {
@@ -54,9 +62,9 @@ const EventModal: React.FC<EventModalProps> = ({
     if (event) {
       setTitle(event.title);
       setDescription(event.description);
-      setStartDate(event.start.toISOString().split('T')[0]);
+      setStartDate(event.start.toLocaleDateString('en-CA'));
       setStartTime(event.start.toTimeString().slice(0, 5));
-      setEndDate(event.end.toISOString().split('T')[0]);
+      setEndDate(event.end.toLocaleDateString('en-CA'));
       setEndTime(event.end.toTimeString().slice(0, 5));
       setColor(event.color);
       setImportance(event.importance);
@@ -67,14 +75,14 @@ const EventModal: React.FC<EventModalProps> = ({
       tomorrow.setDate(now.getDate() + 1);
       setTitle('');
       setDescription('');
-      setStartDate(now.toISOString().split('T')[0]);
+      setStartDate(selectedDate ? selectedDate.toLocaleDateString('en-CA') : now.toLocaleDateString('en-CA'));
       setStartTime('09:00');
-      setEndDate(tomorrow.toISOString().split('T')[0]);
+      setEndDate(selectedDate ? selectedDate.toLocaleDateString('en-CA') : tomorrow.toLocaleDateString('en-CA'));
       setEndTime('10:00');
       setColor(colorOptions[0].value);
       setImportance('medium');
     }
-  }, [event, isOpen]);
+  }, [event, isOpen, selectedDate]);
 
   const handleSave = () => {
     const start = new Date(`${startDate}T${startTime}`);
@@ -94,177 +102,126 @@ const EventModal: React.FC<EventModalProps> = ({
     }
   };
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2"
-          onClick={onClose}
+  const footer = (
+    <div className="flex justify-between items-center w-full">
+      <div>
+        {event && onDelete && (
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={handleDelete}
+          className="flex items-center"
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-lg shadow-xl w-full sm:max-w-lg lg:max-w-2xl flex flex-col max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex justify-between items-center p-2 px-4">
-              <h2 className="text-lg sm:text-xl font-semibold">
-                {event ? 'Edit Event' : 'Add Event'}
-              </h2>
-              <button
-                onClick={onClose}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-4 md:px-6 space-y-2 md:space-y-4">
-              {/* Title */}
-              <div>
-                <label className="block text-xs md:text-sm font-medium mb-1">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full p-1 md:p-2 text-xs md:text-sm border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Event title"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-xs md:text-sm font-medium mb-1">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-1 md:p-2 text-xs md:text-sm border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={2}
-                  placeholder="Event description"
-                />
-              </div>
-
-              {/* Dates & Times */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { label: 'Start Date', icon: Calendar, type: 'date', value: startDate, set: setStartDate },
-                  { label: 'Start Time', icon: Clock, type: 'time', value: startTime, set: setStartTime },
-                  { label: 'End Date', icon: Calendar, type: 'date', value: endDate, set: setEndDate },
-                  { label: 'End Time', icon: Clock, type: 'time', value: endTime, set: setEndTime },
-                ].map((field, i) => (
-                  <div key={i}>
-                    <label className="text-xs md:text-sm font-medium mb-1 flex items-center">
-                      <field.icon size={14} className="mr-1" />
-                      {field.label}
-                    </label>
-                    <input
-                      type={field.type}
-                      value={field.value}
-                      onChange={(e) => field.set(e.target.value)}
-                      className="w-full p-1 md:p-2 text-xs md:text-sm border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Importance */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Importance</label>
-                <div className="flex flex-wrap gap-2">
-                  {importanceOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setImportance(option.value as 'low' | 'medium' | 'high')}
-                      className={`px-3 py-0.5 md:py-1 text-[10px] md:text-xs cursor-pointer rounded-full font-medium transition-all duration-200 ${
-                        importance === option.value
-                          ? 'bg-blue-500 text-white ring-2 ring-slate-700'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Type */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Type</label>
-                <div className="flex flex-wrap gap-2">
-                  {typeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setType(option.value as any)}
-                      className={`px-3 py-0.5 md:py-1 text-[10px] md:text-xs cursor-pointer rounded-full  font-medium transition-all duration-200 ${
-                        type === option.value ? 'ring-2 ring-slate-700' : ''
-                      } ${option.color}`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Color */}
-              <div>
-                <label className="text-sm font-medium mb-1 flex items-center">
-                  <Palette size={16} className="mr-1" />
-                  Color
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {colorOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setColor(option.value)}
-                      className={`w-6 h-6 md:w-8 md:h-8 cursor-pointer rounded-full ${option.value} border-2 ${
-                        color === option.value ? 'border-gray-700' : 'border-gray-300'
-                      } transition-all`}
-                      title={option.label}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-              {event && onDelete && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleDelete}
-                  className="flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 size={16} className="mr-2" />
-                  Delete
-                </motion.button>
-              )}
-              <div className="flex gap-2 ml-auto">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-all hover:scale-105 duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all hover:scale-105 duration-200"
-                >
-                  <Save size={16} className="mr-2" />
-                  Save
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+          <Trash2 size={14} className="mr-2" />
+          Delete
+        </Button>
       )}
-    </AnimatePresence>
+      </div>
+      <div className="flex gap-2 ml-auto">
+        <Button variant="secondary" size="sm" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button variant="primary" size="sm" onClick={handleSave} className="flex items-center">
+          <Save size={14} className="mr-2" />
+          Save
+        </Button>
+
+      </div>
+    </div>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={event ? 'Edit Event' : 'Add Event'}
+      footer={footer}
+    >
+      <div className="space-y-4">
+        <Input
+          label="Title"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Event title"
+        />
+
+        <Textarea
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+          placeholder="Event description"
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Start Date"
+            icon={<Calendar size={14} />}
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+          <Input
+            label="Start Time"
+            icon={<Clock size={14} />}
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+          <Input
+            label="End Date"
+            icon={<Calendar size={14} />}
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+          <Input
+            label="End Time"
+            icon={<Clock size={14} />}
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Importance</label>
+          <div className="flex flex-wrap gap-2">
+            {importanceOptions.map((option) => (
+              <Chip
+                key={option.value}
+                label={option.label}
+                selected={importance === option.value}
+                onClick={() => setImportance(option.value as 'low' | 'medium' | 'high')}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Type</label>
+          <div className="flex flex-wrap gap-2">
+            {typeOptions.map((option) => (
+              <Chip
+                key={option.value}
+                label={option.label}
+                selected={type === option.value}
+                onClick={() => setType(option.value as any)}
+                className={option.color}
+              />
+            ))}
+          </div>
+        </div>
+
+        <ColorPicker
+          label="Color"
+          value={color}
+          onChange={setColor}
+          options={colorOptions}
+        />
+      </div>
+    </Modal>
   );
 };
 

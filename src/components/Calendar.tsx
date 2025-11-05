@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
+import { selectEvents } from '../store/eventsSlice';
 import MonthView from './MonthView';
 import WeekView from './WeekView';
 import DayView from './DayView';
@@ -15,7 +16,7 @@ interface CalendarProps {
 }
 
 const Calendar: React.FC<CalendarProps> = ({ onEventClick, onDateClick }) => {
-  const events = useSelector((state: RootState) => state.events.events);
+  const events = useSelector(selectEvents);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'year' | 'month' | 'week' | 'day'>('month');
   const [showMoreModal, setShowMoreModal] = useState<{ isOpen: boolean; date: Date | null; hour?: number }>({ isOpen: false, date: null });

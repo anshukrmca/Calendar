@@ -59,7 +59,7 @@ const MonthView: React.FC<MonthViewProps> = ({
           }`}
       >
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="font-semibold py-1">
+          <div key={d} className="font-semibold py-1 text-xs sm:text-sm">
             {d}
           </div>
         ))}
@@ -82,34 +82,35 @@ const MonthView: React.FC<MonthViewProps> = ({
               whileHover={{ scale: 1.02 }}
               onClick={() => onDateClick(day)}
               className={`
-        p-2 border border-gray-200 rounded-md cursor-pointer transition-colors
+        p-1 sm:p-2 border border-gray-200 rounded cursor-pointer transition-colors max-h-20 
         ${isToday
                   ? "bg-blue-100 ring-1 ring-blue-500 text-blue-700 font-semibold"
                   : isCurrentMonth
                     ? "bg-white text-gray-900 hover:bg-gray-100"
                     : "bg-gray-100 text-gray-400"
                 }
-        ${YearView ? "max-h-[100px]" : "min-h-[100px]"}
+        ${YearView ? "sm:max-h-[100px]" : "sm:min-h-[100px]"}
         ${compact ? "text-[10px]" : ""}
       `}
             >
               <div
-                className={`text-sm font-medium mb-1 ${isToday ? "text-blue-700 font-bold" : ""
+                className={`text-xs sm:text-sm font-medium mb-1 ${isToday ? "text-blue-700 font-bold" : ""
                   }`}
               >
                 {day.getDate()}
               </div>
               {!YearView && (
-                <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map((event) => (
+                <div className="space-y-0.5 sm:space-y-1">
+                  {dayEvents.slice(0, 2).map((event) => (
                     <motion.div
                       key={event.id}
-                      whileHover={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.05, y: -1 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={(e) => {
                         e.stopPropagation();
                         onEventClick(event);
                       }}
-                      className={`text-xs p-1 rounded text-white truncate ${event.color} cursor-pointer`}
+                      className={`text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 sm:py-1 rounded-md text-white truncate ${event.color} cursor-pointer shadow-sm border border-white/20 font-medium transition-all duration-200 hover:shadow-md`}
                       title={`${event.title} - ${new Date(event.start).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -118,15 +119,15 @@ const MonthView: React.FC<MonthViewProps> = ({
                       {event.title}
                     </motion.div>
                   ))}
-                  {dayEvents.length > 3 && (
+                  {dayEvents.length > 2 && (
                     <motion.div
-                      className="text-xs text-blue-500 cursor-pointer hover:text-blue-700"
+                      className="text-[10px] sm:text-xs text-blue-500 cursor-pointer hover:text-blue-700 font-medium transition-colors duration-200"
                       onClick={(e) => {
                         e.stopPropagation();
                         onShowMore(day);
                       }}
                     >
-                      +{dayEvents.length - 3} more
+                      +{dayEvents.length - 2} <span className="hidden sm:block">more</span>
                     </motion.div>
                   )}
                 </div>

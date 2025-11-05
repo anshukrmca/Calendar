@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Plus } from 'lucide-react';
+import { Calendar, Plus, Palette } from 'lucide-react';
 import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { addEvent, deleteEvent, updateEvent } from '../store/eventsSlice';
 import CalendarComponent from '../components/Calendar';
 import EventModal from '../components/EventModal';
@@ -11,8 +12,10 @@ const CalendarPage: React.FC = () => {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const handleDateClick = () => {
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
     setSelectedEvent(null);
     setIsModalOpen(true);
   };
@@ -23,10 +26,15 @@ const CalendarPage: React.FC = () => {
   };
 
   const handleSaveEvent = (eventData: Omit<Event, 'id'>) => {
+    const serializableData = {
+      ...eventData,
+      start: eventData.start.toISOString(),
+      end: eventData.end.toISOString(),
+    };
     if (selectedEvent) {
-      dispatch(updateEvent({ id: selectedEvent.id, event: eventData }));
+      dispatch(updateEvent({ id: selectedEvent.id, event: serializableData }));
     } else {
-      dispatch(addEvent(eventData));
+      dispatch(addEvent(serializableData));
     }
   };
 
@@ -51,6 +59,13 @@ const CalendarPage: React.FC = () => {
                 Calendar
               </h1>
               <p className="text-gray-600 mt-1">Manage your events and schedule</p>
+              <Link
+                to="/ui-examples"
+                className="inline-flex items-center mt-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <Palette size={16} className="mr-1" />
+                View UI Components Library
+              </Link>
             </div>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -83,6 +98,7 @@ const CalendarPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         event={selectedEvent}
+        selectedDate={selectedDate}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
       />
